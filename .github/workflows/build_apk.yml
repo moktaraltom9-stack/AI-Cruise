@@ -1,33 +1,35 @@
 name: Build Android APK
-
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.19.0'
           channel: 'stable'
-
+      - name: Create fresh Flutter structure
+        run: |
+          mkdir -p temp_lib
+          if [ -f "lib/main.dart" ]; then cp lib/main.dart temp_lib/; fi
+          if [ -f "pubspec.yaml" ]; then cp pubspec.yaml temp_/; fi
+          flutter create . --org com.example --project-name ai_cruise --platforms android
+          if [ -f "temp_lib/main.dart" ]; then cp temp_lib/main.dart lib/; fi
+          if [ -f "temp_/pubspec.yaml" ]; then cp temp_/pubspec.yaml ./; fi
       - name: Install dependencies
         run: flutter pub get
-
       - name: Build APK
         run: flutter build apk --release
-
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
