@@ -20,12 +20,12 @@ jobs:
           channel: 'stable'
       - name: Create fresh Flutter structure
         run: |
-          mkdir -p temp_lib
+          mkdir -p temp_lib temp_pub
           if [ -f "lib/main.dart" ]; then cp lib/main.dart temp_lib/; fi
-          if [ -f "pubspec.yaml" ]; then cp pubspec.yaml temp_/; fi
+          if [ -f "pubspec.yaml" ]; then cp pubspec.yaml temp_pub/; fi
           flutter create . --org com.example --project-name ai_cruise --platforms android
           if [ -f "temp_lib/main.dart" ]; then cp temp_lib/main.dart lib/; fi
-          if [ -f "temp_/pubspec.yaml" ]; then cp temp_/pubspec.yaml ./; fi
+          if [ -f "temp_pub/pubspec.yaml" ]; then cp temp_pub/pubspec.yaml ./; fi
       - name: Install dependencies
         run: flutter pub get
       - name: Build APK
