@@ -1,1 +1,1 @@
-{"name":"ai-cruise","version":"0.1.0","private":true,"description":"AI Cruise","main":"index.js","scripts":{"start":"node index.js"}}
+{"name":"ai-cruise","version":"0.1.0","private":true,"description":"AI Cruise","main":"index.js","scripts":{"start":"node index.js"},"dependencies":{"dotenv":"^17.4.2"}}
