@@ -34,14 +34,20 @@ jobs:
           if [ -f "temp_lib/main.dart" ]; then cp temp_lib/main.dart lib/; fi
           if [ -f "temp_pub/pubspec.yaml" ]; then cp temp_pub/pubspec.yaml ./; fi
 
-      - name: Add flutterVersion properties safely
+      - name: Fix build.gradle properties
         run: |
           BUILD_GRADLE="android/app/build.gradle"
           if [ -f "$BUILD_GRADLE" ]; then
-            echo 'def flutterVersionCode = localProperties.getProperty("flutter.versionCode")' >> "$BUILD_GRADLE"
-            echo 'if (flutterVersionCode == null) { flutterVersionCode = "1" }' >> "$BUILD_GRADLE"
-            echo 'def flutterVersionName = localProperties.getProperty("flutter.versionName")' >> "$BUILD_GRADLE"
-            echo 'if (flutterVersionName == null) { flutterVersionName = "1.0" }' >> "$BUILD_GRADLE"
+            # استبدال الخصائص المفقودة بقيم ثابتة مباشرة لتجنب أي خطأ
+            sed -i 's/flutterVersionCode.toInteger()/1/g' "$BUILD_GRADLE"
+            sed -i 's/flutterVersionName/ "1.0"/g' "$BUILD_GRADLE"
+            # إضافة المتغيرات لو لم تكن موجودة
+            sed -i '/defaultConfig {/a \
+                applicationId "com.example.ai_cruise"\
+                minSdkVersion flutter.minSdkVersion\
+                targetSdkVersion flutter.targetSdkVersion\
+                versionCode 1\
+                versionName "1.0"' "$BUILD_GRADLE"
           fi
 
       - name: Install dependencies
