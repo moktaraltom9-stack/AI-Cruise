@@ -3,20 +3,17 @@ plugins {
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
-
 android {
     namespace "com.example.ai_cruise"
     compileSdkVersion flutter.compileSdkVersion
-
     defaultConfig {
         applicationId "com.example.ai_cruise"
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 34
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
 }
-
 flutter {
     source '../..'
 }
