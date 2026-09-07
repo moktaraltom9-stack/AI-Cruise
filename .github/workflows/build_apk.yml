@@ -1,50 +1,67 @@
 name: Build Android APK
+
 on:
   push:
     branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.0'
           channel: 'stable'
-      - name: Create fresh Flutter structure
+
+      - name: Create fresh Flutter structure & Inject Dependencies
         run: |
-          mkdir -p temp_lib temp_pub
+          mkdir -p temp_lib
           if [ -f "lib/main.dart" ]; then cp lib/main.dart temp_lib/; fi
-          if [ -f "pubspec.yaml" ]; then cp pubspec.yaml temp_pub/; fi
+
           flutter create . --org com.example --project-name ai_cruise --platforms android
+
           if [ -f "temp_lib/main.dart" ]; then cp temp_lib/main.dart lib/; fi
-          if [ -f "temp_pub/pubspec.yaml" ]; then cp temp_pub/pubspec.yaml ./; fi
-      - name: Fix build.gradle properties
-        run: |
-          BUILD_GRADLE="android/app/build.gradle"
-          if [ -f "$BUILD_GRADLE" ]; then
-            # استبدال الخصائص المفقودة بقيم ثابتة مباشرة لتجنب أي خطأ
-            sed -i 's/flutterVersionCode.toInteger()/1/g' "$BUILD_GRADLE"
-            sed -i 's/flutterVersionName/ "1.0"/g' "$BUILD_GRADLE"
-            # إضافة المتغيرات لو لم تكن موجودة
-            sed -i '/defaultConfig {/a \
-                applicationId "com.example.ai_cruise"\
-                minSdkVersion flutter.minSdkVersion\
-                targetSdkVersion flutter.targetSdkVersion\
-                versionCode 1\
-                versionName "1.0"' "$BUILD_GRADLE"
-          fi
+
+          # حقن مكتبة url_launcher تلقائياً في ملف pubspec.yaml لضمان عدم فقدانها
+          cat << 'EOF' > pubspec.yaml
+name: ai_cruise
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  url_launcher: ^6.2.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+EOF
+
       - name: Install dependencies
         run: flutter pub get
+
       - name: Build APK
         run: flutter build apk --debug
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
