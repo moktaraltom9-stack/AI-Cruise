@@ -26,6 +26,21 @@ jobs:
           flutter create . --org com.example --project-name ai_cruise --platforms android
           if [ -f "temp_lib/main.dart" ]; then cp temp_lib/main.dart lib/; fi
           if [ -f "temp_pub/pubspec.yaml" ]; then cp temp_pub/pubspec.yaml ./; fi
+      - name: Inject flutterVersion properties
+        run: |
+          BUILD_GRADLE="android/app/build.gradle"
+          if [ -f "$BUILD_GRADLE" ]; then
+            sed -i '/defaultConfig {/a \
+                def flutterVersionCode = localProperties.getProperty("flutter.versionCode")\
+                if (flutterVersionCode == null) {\
+                    flutterVersionCode = "1"\
+                }\
+                def flutterVersionName = localProperties.getProperty("flutter.versionName")\
+                if (flutterVersionName == null) {\
+                    flutterVersionName = "1.0"\
+                }\
+            ' "$BUILD_GRADLE"
+          fi
       - name: Install dependencies
         run: flutter pub get
       - name: Build APK
