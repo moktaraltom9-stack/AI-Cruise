@@ -12,9 +12,8 @@ class AICruiseApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: Colors.deepPurple,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        cardColor: const Color(0xFF1E1E1E),
+        scaffoldBackgroundColor: const Color(0xFF0D0F1D),
+        primaryColor: Colors.deepPurpleAccent,
       ),
       home: const HomeScreen(),
     );
@@ -26,102 +25,132 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final List<String> _logs = [];
-  // دالة فتح الواتساب وإرسال الرسالة
-  Future<void> _openWhatsApp(String phone, String message) async {
-    final Uri whatsappUri = Uri.parse("https://wa.me/$phone?text=${Uri.encodeComponent(message)}");
+  // دالة فتح الواتساب
+  Future<void> _openWhatsApp() async {
+    final Uri whatsappUri = Uri.parse("https://wa.me/?text=${Uri.encodeComponent("مرحباً، أنا أستخدم تطبيق AI Cruise الذكي!")}");
     try {
       if (await canLaunchUrl(whatsappUri)) {
         await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-        setState(() {
-          _logs.add("تم فتح الواتساب وإرسال الرسالة بنجاح!");
-        });
-      } else {
-        setState(() {
-          _logs.add("عذراً، لم يتم العثور على تطبيق الواتساب.");
-        });
       }
     } catch (e) {
-      setState(() {
-        _logs.add("حدث خطأ: $e");
-      });
+      print("خطأ: $e");
     }
-  }
-  // تحليل الأمر المدخل وتوجيهه
-  void _executeCommand(String command) {
-    setState(() {
-      _logs.add("الأمر: $command");
-    });
-    // لو الأمر يحتوي على كلمة واتساب أو إرسال
-    if (command.contains("واتساب") || command.contains("whatsapp")) {
-      // كمثال افتراضي، رقم ورسالة تجريبية، أو يمكن تحسينها لاحقاً لاستخراج الأرقام
-      _openWhatsApp("+249900000000", "مرحباً، هذه رسالة تجريبية من تطبيق AI Cruise");
-    } else {
-      setState(() {
-        _logs.add("تم استقبال الأمر ولكن ليس أمراً موجهاً للواتساب.");
-      });
-    }
-    _controller.clear();
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Cruise - Assistant'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () {},
+        ),
+        title: const Text(
+          'AI Cruise',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.deepPurple.withOpacity(0.3)),
+            // أيقونة الروبوت في الأعلى
+            Container(
+              height: 110,
+              width: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Colors.cyanAccent, Colors.deepPurpleAccent],
                 ),
-                child: ListView.builder(
-                  itemCount: _logs.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Text(
-                        _logs[index],
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                    );
-                  },
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.cyanAccent.withOpacity(0.4),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(4.0),
+                child: CircleAvatar(
+                  backgroundColor: Color(0xFF131629),
+                  child: Icon(Icons.smart_toy, size: 55, color: Colors.cyanAccent),
                 ),
               ),
             ),
             const SizedBox(height: 12),
+            const Text(
+              'مرحباً بك في AI Cruise',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'كل ما تحتاجه من أدوات الذكاء الاصطناعي في مكان واحد',
+              style: TextStyle(fontSize: 13, color: Colors.white54),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+
+            // الأزرار الرئيسية (تشغيل يفتح الواتساب وإيقاف)
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      hintText: 'اكتب أمرك هنا (مثال: افتح واتساب)...',
-                      filled: true,
-                      fillColor: const Color(0xFF2C2C2C),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: Border.none,
+                  child: InkWell(
+                    onTap: _openWhatsApp,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA)]),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(color: Colors.purple.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4)),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Icon(Icons.play_arrow, color: Colors.cyanAccent, size: 28),
+                          SizedBox(height: 12),
+                          Text('تشغيل', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                          SizedBox(height: 4),
+                          Text('بدء الواتساب والمهام', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Colors.deepPurpleAccent),
-                  onPressed: () {
-                    if (_controller.text.isNotEmpty) {
-                      _executeCommand(_controller.text);
-                    }
-                  },
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFFC62828), Color(0xFFE53935)]),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(color: Colors.red.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4)),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Icon(Icons.stop, color: Colors.white, size: 28),
+                        SizedBox(height: 12),
+                        Text('إيقاف فوري', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                        SizedBox(height: 4),
+                        Text('إيقاف العمليات حالاً', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
