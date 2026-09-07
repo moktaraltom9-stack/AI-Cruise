@@ -1,32 +1,55 @@
 name: Build Android APK
+
 on:
   push:
     branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.0'
           channel: 'stable'
-      - name: Create Flutter structure
+
+      - name: Create fresh Flutter structure
         run: |
-          if [ ! -f "pubspec.yaml" ]; then
-            flutter create . --org com.example --project-name ai_cruise --platforms android
+          mkdir -p temp_lib temp_pub
+          if [ -f "lib/main.dart" ]; then cp lib/main.dart temp_lib/; fi
+          if [ -f "pubspec.yaml" ]; then cp pubspec.yaml temp_pub/; fi
+
+          flutter create . --org com.example --project-name ai_cruise --platforms android
+
+          if [ -f "temp_lib/main.dart" ]; then cp temp_lib/main.dart lib/; fi
+          if [ -f "temp_pub/pubspec.yaml" ]; then cp temp_pub/pubspec.yaml ./; fi
+
+      - name: Add flutterVersion properties safely
+        run: |
+          BUILD_GRADLE="android/app/build.gradle"
+          if [ -f "$BUILD_GRADLE" ]; then
+            echo 'def flutterVersionCode = localProperties.getProperty("flutter.versionCode")' >> "$BUILD_GRADLE"
+            echo 'if (flutterVersionCode == null) { flutterVersionCode = "1" }' >> "$BUILD_GRADLE"
+            echo 'def flutterVersionName = localProperties.getProperty("flutter.versionName")' >> "$BUILD_GRADLE"
+            echo 'if (flutterVersionName == null) { flutterVersionName = "1.0" }' >> "$BUILD_GRADLE"
           fi
+
       - name: Install dependencies
         run: flutter pub get
+
       - name: Build APK
         run: flutter build apk --release
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
