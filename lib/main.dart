@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 void main() {
   runApp(const AICruiseApp());
 }
@@ -25,8 +26,27 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 class _HomeScreenState extends State<HomeScreen> {
-  // دالة فتح الواتساب
+  final FlutterTts _flutterTts = FlutterTts();
+  @override
+  void initState() {
+    super.initState();
+    _initTts();
+  }
+  // إعدادات الصوت واللغة العربية
+  Future<void> _initTts() async {
+    await _flutterTts.setLanguage("ar-SA");
+    await _flutterTts.setSpeechRate(0.5);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+    // الترحيب الصوتي تلقائياً عند فتح التطبيق
+    _speak("مرحباً بك، معك أي آي كروز، ماذا تريد أن أفعل لك؟");
+  }
+  Future<void> _speak(String text) async {
+    await _flutterTts.speak(text);
+  }
+  // دالة فتح الواتساب والنطق عند الضغط
   Future<void> _openWhatsApp() async {
+    _speak("جاري فتح الواتساب الآن");
     final Uri whatsappUri = Uri.parse("https://wa.me/?text=${Uri.encodeComponent("مرحباً، أنا أستخدم تطبيق AI Cruise الذكي!")}");
     try {
       if (await canLaunchUrl(whatsappUri)) {
@@ -44,7 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () {},
+          onPressed: () {
+            _speak("قائمة الخيارات");
+          },
         ),
         title: const Text(
           'AI Cruise',
@@ -54,7 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              _speak("الإعدادات");
+            },
           ),
         ],
       ),
@@ -63,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // أيقونة الروبوت في الأعلى
+            // أيقونة الروبوت
             Container(
               height: 110,
               width: 110,
@@ -95,13 +119,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 4),
             const Text(
-              'كل ما تحتاجه من أدوات الذكاء الاصطناعي في مكان واحد',
+              'معك مساعدك الذكي، ماذا تريد أن أفعل لك؟',
               style: TextStyle(fontSize: 13, color: Colors.white54),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-
-            // الأزرار الرئيسية (تشغيل يفتح الواتساب وإيقاف)
+            // الأزرار الرئيسية
             Row(
               children: [
                 Expanded(
@@ -131,24 +154,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFFC62828), Color(0xFFE53935)]),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(color: Colors.red.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4)),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Icon(Icons.stop, color: Colors.white, size: 28),
-                        SizedBox(height: 12),
-                        Text('إيقاف فوري', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                        SizedBox(height: 4),
-                        Text('إيقاف العمليات حالاً', style: TextStyle(fontSize: 11, color: Colors.white70)),
-                      ],
+                  child: InkWell(
+                    onTap: () {
+                      _speak("تم إيقاف العمليات فورا");
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFFC62828), Color(0xFFE53935)]),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(color: Colors.red.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4)),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Icon(Icons.stop, color: Colors.white, size: 28),
+                          SizedBox(height: 12),
+                          Text('إيقاف فوري', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                          SizedBox(height: 4),
+                          Text('إيقاف العمليات حالاً', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
