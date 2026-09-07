@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 void main() {
   runApp(const AICruiseApp());
 }
@@ -25,110 +26,104 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _promptController = TextEditingController();
-  final List<String> _agentLogs = [];
-  void _runAgentTask() {
-    final text = _promptController.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _agentLogs.insert(0, '🤖 جاري تنفيذ المهمة: "$text"');
-      _promptController.clear();
-    });
-    Future.delayed(const Duration(seconds: 1), () {
+  final TextEditingController _controller = TextEditingController();
+  final List<String> _logs = [];
+  // دالة فتح الواتساب وإرسال الرسالة
+  Future<void> _openWhatsApp(String phone, String message) async {
+    final Uri whatsappUri = Uri.parse("https://wa.me/$phone?text=${Uri.encodeComponent(message)}");
+    try {
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        setState(() {
+          _logs.add("تم فتح الواتساب وإرسال الرسالة بنجاح!");
+        });
+      } else {
+        setState(() {
+          _logs.add("عذراً، لم يتم العثور على تطبيق الواتساب.");
+        });
+      }
+    } catch (e) {
       setState(() {
-        _agentLogs.insert(0, '✅ تم تحليل الطلب بنجاح وجاري البدء بالخطوات...');
+        _logs.add("حدث خطأ: $e");
       });
+    }
+  }
+  // تحليل الأمر المدخل وتوجيهه
+  void _executeCommand(String command) {
+    setState(() {
+      _logs.add("الأمر: $command");
     });
+    // لو الأمر يحتوي على كلمة واتساب أو إرسال
+    if (command.contains("واتساب") || command.contains("whatsapp")) {
+      // كمثال افتراضي، رقم ورسالة تجريبية، أو يمكن تحسينها لاحقاً لاستخراج الأرقام
+      _openWhatsApp("+249900000000", "مرحباً، هذه رسالة تجريبية من تطبيق AI Cruise");
+    } else {
+      setState(() {
+        _logs.add("تم استقبال الأمر ولكن ليس أمراً موجهاً للواتساب.");
+      });
+    }
+    _controller.clear();
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Cruise - وكيل الذكاء الاصطناعي'),
-        backgroundColor: const Color(0xFF1F1F1F),
-        elevation: 0,
+        title: const Text('AI Cruise - Assistant'),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.deepPurple.withOpacity(0.4)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'ماذا تريد أن أفعل لك اليوم؟',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _promptController,
-                    decoration: InputDecoration(
-                      hintText: 'مثلاً: اعمل لي فيديو عن كرة القدم وجهزه لـ TikTok...',
-                      hintStyle: TextStyle(color: Colors.grey[500]),
-                      filled: true,
-                      fillColor: const Color(0xFF2A2A2A),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _runAgentTask,
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text('تشغيل الوكيل (Agent Mode)'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'سجل العمليات والنشاطات:',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
-            ),
-            const SizedBox(height: 10),
             Expanded(
-              child: _agentLogs.isEmpty
-                  ? const Center(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.deepPurple.withOpacity(0.3)),
+                ),
+                child: ListView.builder(
+                  itemCount: _logs.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Text(
-                        'لا توجد مهام نشطة حالياً. اكتب أمراً للبدء!',
-                        style: TextStyle(color: Colors.grey),
+                        _logs[index],
+                        style: const TextStyle(color: Colors.white70),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: _agentLogs.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          color: const Color(0xFF1A1A1A),
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          child: ListTile(
-                            leading: const Icon(Icons.bolt, color: Colors.amber),
-                            title: Text(_agentLogs[index], style: const TextStyle(fontSize: 14)),
-                          ),
-                        );
-                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: 'اكتب أمرك هنا (مثال: افتح واتساب)...',
+                      filled: true,
+                      fillColor: const Color(0xFF2C2C2C),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: Border.none,
+                      ),
                     ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.send, color: Colors.deepPurpleAccent),
+                  onPressed: () {
+                    if (_controller.text.isNotEmpty) {
+                      _executeCommand(_controller.text);
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ),
